@@ -34,6 +34,8 @@
 	HW_VECTOR_RESET			:= $FFFC
 	HW_VECTOR_IRQ			:= $FFFE
 
+;	TK-2000 specific
+
 	TK2K_HW_GRCOLOR			:= $C050
 	TK2K_HW_TEXTBW			:= $C051
 	
