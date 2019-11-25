@@ -1,2 +1,2 @@
 # apple2lib
-My apple 2 library
+My Apple 2 / TK2000 library
