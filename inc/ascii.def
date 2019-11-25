@@ -2,3 +2,4 @@
 
 ASC_LEFT	:= $88
 ASC_RETURN	:= $8D
+ASC_RIGHT	:= $95
