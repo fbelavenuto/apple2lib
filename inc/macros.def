@@ -5,6 +5,36 @@
 	.endrep
 .endmacro
 
+; Macro utilizada para gerar bytes em INVERSE (Apple2)
+.macro	texti	Arg
+	.repeat .strlen(Arg), I
+	.byte   .strat(Arg, I) & $3F
+	.endrep
+.endmacro
+
+; Macro utilizada para gerar bytes em INVERSE (Apple2) com ZERO
+.macro	textiz	Arg
+	.repeat .strlen(Arg), I
+	.byte   .strat(Arg, I) & $3F
+	.endrep
+	.byte   $00
+.endmacro
+
+; Macro utilizada para gerar bytes em FLASH (Apple2)
+.macro	textf	Arg
+	.repeat .strlen(Arg), I
+	.byte   .strat(Arg, I) | $40
+	.endrep
+.endmacro
+
+; Macro utilizada para gerar bytes em FLASH (Apple2) com ZERO
+.macro	textfz	Arg
+	.repeat .strlen(Arg), I
+	.byte   .strat(Arg, I) | $40
+	.endrep
+	.byte   $00
+.endmacro
+
 ; Macro utilizada para colocar um byte nulo no fim da string
 .macro	textz	Arg
 	text Arg

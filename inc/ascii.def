@@ -1,0 +1,4 @@
+; Apple2 Ascii characters equates
+
+ASC_LEFT	:= $88
+ASC_RETURN	:= $8D
