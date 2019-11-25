@@ -1,0 +1,306 @@
+;	====== CompatiBoot 2k =======
+;
+;	An improved, relocatable, TK-2000 aware, CompatiBoot style, Game oriented, (Pseudo) Operating System for the Disk II.
+
+;	Authors:
+;	 Original code
+;	  Raven - C700 Club
+;	  http://bb2k.net/download/CompatiBoot/
+;
+;	 Initial Dissassembly
+;	  Fábio Belavenuto
+;	   http://www.fabio.belavenuto.nom.br/
+;
+;	 Refactoring and added functionalities
+;	  Lisias Toledo
+;	   http://apple2.lisias.net
+
+	.define VERSION_MAJOR 1
+	.define VERSION_MINOR 1
+	.define VERSION_RELEASE	"2012.0901"
+
+	.macro	SYS	syscall
+		BRK
+		.byte	syscall
+	.endmacro
+
+	; This two entries are garanteed to never change or be renamed!
+	CB2K_SYSTEM_PANIC		:= 0
+	CB2K_SYSTEM_IDENTIFICATION	:= 2 + CB2K_SYSTEM_PANIC
+	
+	; The following entries can, but is unlikely to, change on MAJOR versions.
+	CB2K_FILE_LOAD			:= 2 + CB2K_SYSTEM_IDENTIFICATION
+	CB2K_FILE_RUN			:= 2 + CB2K_FILE_LOAD
+	CB2K_FINISH			:= 2 + CB2K_FILE_RUN
+	CB2K_FILE_SET			:= 2 + CB2K_FINISH
+	CB2K_FILE_QUERY			:= 2 + CB2K_FILE_SET
+	CB2K_FILE_GET			:= 2 + CB2K_FILE_QUERY
+	CB2K_RAWFILE_SEEK		:= 2 + CB2K_FILE_GET
+	CB2K_RAWFILE_READ		:= 2 + CB2K_RAWFILE_SEEK
+	CB2K_HANDLER_SET		:= 2 + CB2K_RAWFILE_READ	
+	CB2K_CONFIGURATION_SET		:= 2 + CB2K_HANDLER_SET
+	CB2K_CONFIGURATION_GET		:= 2 + CB2K_CONFIGURATION_SET
+	CB2K_SECTOR_READ		:= 2 + CB2K_CONFIGURATION_GET
+
+	; The following entries (if any) can be added on MINOR versions
+	; CB2K_FUTURE_EXPANSION		:= 2 + CB2K_SECTOR_READ
+	
+	; CB2K_SECTOR_READ
+	;	If START > END, loading order is decrescent, or crescent otherwise.
+	; IN:
+	; 	Acc = Track
+	; 	Carry:
+	;		ON : Keep drive spinning at return. *Be Careful!*
+	; 		OFF : Turns off drive at return.
+	CB2K_SECTOR_START 			:= APPLESOFT_DESTL	; byte
+	CB2K_SECTOR_END 			:= APPLESOFT_DESTH	; byte
+	CB2K_SECTOR_BUFFER			:= MON_A3			; word
+	; OUT:
+	;	Carry : Error Condition
+	;		OFF : No Error
+	;		ON  : Error, with error code on Acc. Se table below.
+
+	
+	; CB2K_FILE_SET
+	; IN:
+	;	Acc	: Index to a file on Catalog's disk
+	;			Does not check range!
+	; 	Carry:
+	;		ON : Keep drive spinning at return. *Be Careful!*
+	; 		OFF : Turns off drive at return.
+	; OUT:
+	;	Carry : File Entry validness
+	;		OFF : File Entry is valid and can be used.
+	;		ON  : File Entry is invalid. Trying to use it will raise an Exception. Use Zero flag to determine EoC condition.
+	;	Zero Flag : Enf Of Catalog flag (only valid with Carry ON)
+	;		OFF : File is deleted, but there're more entries on Catalog
+	;		ON  : End of Catalog reached.
+
+	
+	;CB2K_FILE_QUERY
+	;	Query the status of the currently selected file. It's a way to prevent execptions fom CB2K_FILE_QUERY, if QUERY returns OK, the next GET will succeed.
+	;
+	;	OUT;
+	;		Acc			: The very same file index, for convenience
+	;		Carry OFF 	: OK
+	;		Carry ON	: Error
+	;			Zero On		: End Of Catalog
+	;			Zero Off	: File Deleted
+	;			X			: A dupe of Zero Flag
+	;				X = 0	: End Of Catalog
+	;				X = $FF : File Deleted
+	
+	; CB2K_FILE_GET
+	; OUT:
+	;	Acc					: Index to the selected file from Catalog's disk
+	;	CB2K_FILE 			: Addrees to the file entry, structured as follows
+	CB2K_FILE					:= MON_A1					; pointer
+	CB2K_FILE_TSLIST_TRACK		:= 0					; byte
+	CB2K_FILE_TSLIST_SECTOR		:= 1					; byte
+	CB2K_FILE_TYPE			:= 2					; byte
+	CB2K_FILE_TYPE_LOCK_MASK	:= $80
+	CB2K_FILE_TYPE_TEXT_ID		:= $00
+	CB2K_FILE_TYPE_INTBAS_ID	:= $01
+	CB2K_FILE_TYPE_FPBAS_ID		:= $02
+	CB2K_FILE_TYPE_BIN_ID		:= $04
+	CB2K_FILE_TYPE_S_ID		:= $08
+	CB2K_FILE_TYPE_REL_ID		:= $10
+	CB2K_FILE_TYPE_A_ID		:= $20
+	CB2K_FILE_TYPE_B_ID		:= $40
+	CB2K_FILE_NAME			:= 3					; CHAR[30] "A0" PADDED;
+	CB2K_FILE_SECTORCOUNT		:= $21					; word
+	; 	Carry:
+	;		ON : Keep drive spinning at return. *Be Careful!*
+	; 		OFF : Turns off drive at return.
+	;	Calls __ERR_VECTOR if error
+
+	
+	; CB2K_FILE_LOAD
+	; IN:
+	; 	Carry:
+	;		ON : Keep drive spinning at return. *Be Careful!*
+	; 		OFF : Turns off drive at return.
+	;	Zero:
+	;		ON : Loads file into its original address
+	;		OFF: Loads file into address specified by AX (LSB/MSB)
+	; OUT:
+	;	Binary file loaded
+	;	Acc					: Index to the selected file from Catalog's disk
+		CB2K_FILE_ADDRESS 	:= MON_A1		; word. File's original Loading Address
+		CB2K_FILE_SIZE		:= MON_A2		; word. File size
+	;
+	;	Calls __ERR_VECTOR if error
+
+	
+	; CB2K_FILE_RUN
+	; IN:
+	;	Nothing
+	; OUT:
+	;	Binary file loaded and running
+	;	Acc					: Index to the selected file from Catalog's disk
+	;	CB2K_FILE_ADDRESS 	:= MON_A1		; word. Loading Address
+	;	CB2K_FILE_SIZE		:= MON_A2		; word. File size
+	;
+	;	Automatically finishes the CB2K's current session.
+	;
+	;	Calls __ERR_VECTOR if error
+	
+	
+	; CB2K_RAWFILE_SEEK
+	; IN:
+	;	AX									= word. Selected file's initial sector
+	; 	Carry:
+	;		ON : Keep drive spinning at return. *Be Careful!*
+	; 		OFF : Turns off drive at return.
+	; OUT:
+	;	Carry:
+	;		ON : Requested seek is beyond end of file. Trying a read will raise an Exception.
+	;		OFF: Request fullfiled. Next read will occurs at the specified relative sector.
+	;
+	;	Calls __ERR_VECTOR if error
+	
+	
+	; CB2K_RAWFILE_READ
+	; IN:
+	;	Acc : Number of contiguous sectors to be loaded. Zero if all file is to be loaded.
+	;	CB2K_FILE_ADDRESS 		:= MON_A1	; word. Loading Address
+	; 	Carry:
+	;		ON : Keep drive spinning at return. *Be Careful!*
+	; 		OFF : Turns off drive at return.
+	; OUT:
+	;	Specified sectors from currently selected file are loaded on the specified buffer
+	;	CB2K_FILE_ADDRESS		:= MON_A1	; word. Next call loading address for sequential loading.
+	;	Carry:
+	;		ON : Eof of File reached. Trying a new read will raise an Exception.
+	;		OFF: Further reading is possible.
+	;	Acc	 : Number os sectors read. Commonly, the same value from input except when Carry is set.
+	;
+	;	Calls __ERR_VECTOR if error
+	
+	
+	; CB2K_FINISH
+	;
+	;	IN:
+	;		Nothing
+	;	OUT:
+	;		Drive is garanteed to be off.
+	;		Any pending operations is garanteed to be executed.
+	;
+	;	Calls __ERR_VECTOR if error
+	
+	
+	; CB2K_CONFIGURATION_SET
+	;	Configure buffers and relocation address.
+	;
+	;	There's not constraints on the buffer's address, but it's advisable to keep the R*TS one in a $xx80 address to prevent a extra cycle on the time critical routines. The R*TS routines were redesigned to take this hit on the current memory position, but it's not garanteed, once the CB2k is relocated to a new address, that the time critical routines will manage to sustain this extra cicle and 3 another potential ones that can happens if some critical data and code end up crossing page borders.
+	;
+	;	Scratch buffers are used to temporary data storage during a call, but their contents are not important once the call is concluded.
+	;
+	;	Session buffers must be preserved when a CB2K_RAWFILE_* or CB2K_FILE_* is made until A CB2K_FINISH is issued. Can be scratched after the FINISH, but please remember to do not tamper with this buffer if you do some of the mentioned SYSCALLs again.
+	;
+	; 	Persistent buffers MUST NOT BE TAMPERED or system will crash.
+	;
+	;	Use CB2K_CONFIGURATION_GET to get current status quo, and then make the changes you want.
+	;
+	; IN:
+	;	AX						:= Relocate CB2k to a new Address (LSB/MSB) - FUTURE FEATURE
+	;	Y						:= Current CFG_SLOT16
+		CB2K_CFGBUF_RWTS		:= MON_A1	; Half Page ($80) scracth buffer for R*TS
+		CB2K_CFGBUF_CATALOG		:= MON_A2	; 1 page buffer to keep the current catalog sector. Must be persistent
+		CB2K_CFGBUF_TSLIST		:= MON_A3	; 1 page session buffer to handle the file's track/sector list
+		CB2K_CFGBUF_FILE		:= MON_A4	; 1 page scrach buffer to handle the file's non destructive loading process
+	;	"Raises" a Exception on error.
+	
+	
+	; CB2K_CONFIGURATION_GET
+	;	Gets the current buffers and relocation address.
+	;
+	;	Scratch buffers are used to temporary data storage during a call, but their contents are not important once the call is concluded.
+	;
+	; 	Persistent buffers MUST NOT BE TAMPERED or system will crash.
+	;
+	;	Sets MSB to $0 to keep one option in the current settings (i.e., you don't have to set all options just to change one)
+	;
+	; OUT:
+	;	AX						:= Current CB2k base Address (LSB/MSB)
+	;	Y						:= Current CFG_SLOT16
+	;	CB2K_CFGBUF_RWTS		:= MON_A1	; Half Page ($80) scracth buffer for R*TS
+	;	CB2K_CFGBUF_CATALOG		:= MON_A2	; 1 page buffer to keep the current catalog sector. Must be persistent
+	;	CB2K_CFGBUF_TSLIST		:= MON_A3	; 1 page scrach buffer to handle the file's track/sector list
+	;	CB2K_CFGBUF_FILE		:= MON_A4	; 1 page scrach buffer to handle the file's non destructive load process
+		CB2K_ADDRESS_END		:= MON_A5	; Address of the last byte used (inclusive) by CB2k.
+
+	; CB2K_SYSTEM_IDENTIFICATION
+	;	Gets the machine hardware identification and caracteristics.
+	; OUT:
+	;	Acc						:= MACHINE_ID
+									CB2K_MACHINE_TK2000_GENERIC_MASK			:=	%10000000
+										CB2K_MACHINE_TK2000_FAMILY_MASK			:=	%10000000
+											CB2K_MACHINE_TK2000_1_ID					:=	%10000001	; FUTURE EXPANSION
+											CB2K_MACHINE_TK2000_2_ID					:=	%10000010	; FUTURE EXPANSION
+									CB2K_MACHINE_APPLE_GENERIC_MASK				:=	%01000000
+										CB2K_MACHINE_APPLE_2_FAMILY_MASK		:=	%01001000
+											CB2K_MACHINE_APPLE_2_ID					:=	%01001001
+											CB2K_MACHINE_APPLE_2_PLUS_ID			:=	%01001010
+										CB2K_MACHINE_APPLE_2E_FAMILY_MASK		:=	%01010000
+											CB2K_MACHINE_APPLE_2E_ID				:=	%01010001
+											CB2K_MACHINE_APPLE_2E_ENHANCED_ID		:=	%01010010
+										CB2K_MACHINE_APPLE_2C_FAMILY_MASK		:=	%01011000
+											CB2K_MACHINE_APPLE_2C_ID				:=	%01011001
+											CB2K_MACHINE_APPLE_2C_35ROM_ID			:=	%01011010
+											CB2K_MACHINE_APPLE_2C_ORGMEMEXP_ID		:=	%01011011
+											CB2K_MACHINE_APPLE_2C_REVMEMEXP_ID		:=	%01011100
+											CB2K_MACHINE_APPLE_2C_PLUS_ID			:=	%01011101
+										CB2K_MACHINE_APPLE_2GS_FAMILY_MASK		:=	%01100000	; FUTURE EXPANSION
+											CB2K_MACHINE_APPLE_2GS_ROM0				:=	%01100001	; FUTURE EXPANSION
+											CB2K_MACHINE_APPLE_2GS_ROM1				:=	%01100010	; FUTURE EXPANSION
+											CB2K_MACHINE_APPLE_2GS_ROM3				:=	%01100011	; FUTURE EXPANSION
+										CB2K_MACHINE_APPLE_3_FAMILY_MASK		:=	%01110000
+	;	X						:= Memory expansion banks available : FUTURE EXPANSION
+	;									0 == No expansion 
+	;									1 == 16Kb (Apple Language Card or similar) or 64kb (Apple //e Auxiliary Memory)
+	;									2 == 32kb or 128kb
+	;									3 == 48kb or 192kb
+	;									4 == 64kb (Saturn 64kb) or 256kb (RamWorks I / TK-Works)
+	;									etc....
+	;	Y						:= CB2K Version bcd coded:
+	;									LSN	:= Minor Version
+	;									MSN	:= Major Version
+
+	; CB2K_HANDLER_SET
+	;	Sets a new handling routing, in exchange to the current one.
+	;
+	;	The given routine must be smart enough to cleanup the stack and take measures to garantee code safety if it decides to return to the caller. A complex, but not too hard, task.
+	;
+	;	IN:
+	;		AX	  : Address of the routine.
+	;			If X == 0, rolls back to the default handler.
+	;		Y 	= Handler Number
+	;			Handlers currently implemented:
+					CB2K_HANDLER_ERROR		:= $FF
+					CB2K_HANDLER_WARMBOOT	:= $00
+	;
+	;	Calls current __ERR_VECTOR if error
+	
+		
+	; CB2K_HANDLER_ERR_DEFAULT
+	;	Calls default __ERR_VECTOR, no matter the current handler setting.
+	;
+	;	It's an one way ticket, there's no return.
+	
+	; CB2k Error Codes
+	; 	See Acc when Carry is set.
+	CB2K_ERR_PANIC						:= $80
+	CB2K_ERR_NOT_IMPLEMENTED_ID			:= $ff
+	CB2K_ERR_NOT_READY_ID				:= $fe
+	CB2K_ERR_BAD_CHKSUM_ADDR_ID			:= $fd
+	CB2K_ERR_BAD_CHKSUM_DATA_ID			:= $fc
+	CB2K_ERR_SEEK_ID					:= $fb
+	CB2K_ERR_PARAMETERS_ID				:= $fa
+	CB2K_ERR_BAD_FORMAT_ADDR_START_ID	:= $f9
+	CB2K_ERR_BAD_FORMAT_ADDR_END_ID		:= $f8
+	CB2K_ERR_BAD_FORMAT_DATA_START_ID	:= $f7
+	CB2K_ERR_BAD_FORMAT_DATA_END_ID		:= $f6
+	CB2K_ERR_EOF_ID						:= $f5
+	
+	

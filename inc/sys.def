@@ -1,0 +1,42 @@
+
+	.include	"Monitor.def"
+	.include	"Applesoft.def"
+	
+	BOOT0_SLOT16	:= $2B	; slot * 16 - Opa! Colisão com a variável BAS2!
+	BOOT0_SECTOR	:= $3D	; Setor a ser lido pela $Cn5C.
+	BOOT0_TRACK	:= $41	; Trilha a ser lida pela $Cn5C.
+
+	FREE_1E		:= $1E
+	
+	FREE_4A		:= $4A
+	FREE_4B		:= $4B
+	FREE_4C		:= $4C
+	FREE_4D		:= $4D
+	
+	FREE_D7		:= $D7				; Not used by Monitor or Applesoft on AppleII neither TK-2000
+	FREE_D9		:= $D9				; Not used by Monitor or Applesoft on AppleII neither TK-2000
+	
+	FREE_CE		:= $CE
+	FREE_CF		:= $CF
+	
+	FREE_EB		:= $EB
+	FREE_EE		:= $EE
+	FREE_EF		:= $EF
+	
+	FREE_FA		:= $FA
+	FREE_FB		:= $FB
+	FREE_FC		:= $FC
+	FREE_FD		:= $FD
+	
+	UNK_I_FE	:= $FE				; Não pode ser usado no TK-2000 X-(
+	
+	UNK_AI_FF	:= $FF
+	
+	UNK_66		:= $66
+	UNK_67		:= $67
+	UNK_68		:= $68
+	UNK_69		:= $69
+	UNK_6A		:= $6A
+	UNK_6B		:= $6B
+	UNK_6C		:= $6C
+	UNK_6D		:= $6D

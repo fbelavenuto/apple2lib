@@ -1,0 +1,17 @@
+MEMORY {
+	ZP:     start = $0000, size = $00FF,               define = yes;
+	RAM:    start = $0000, size = $C000,   file = %O,  define = yes;
+	ROM:    start = $C000, size = $4000,   file = %O,  define = yes;
+}
+
+SEGMENTS {
+	ZEROPAGE: load = ZP,              type = zp;
+	CODE:     load = RAM,             type = ro;
+	RODATA:   load = RAM,             type = ro;
+	DATA:     load = RAM,             type = rw;
+	BSS:      load = RAM,             type = bss, define   = yes;
+}
+
+SYMBOLS {
+	__STACKSIZE__: value = $0800, TYPE = weak;
+}

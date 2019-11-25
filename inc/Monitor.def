@@ -1,0 +1,94 @@
+
+	MON_GOWARM		:= $0000
+	MON_GOSTROUT		:= $0003
+
+	MON_PC			:= $3A
+	MON_PCL			:= $3A
+	MON_PCH			:= $3B
+	MON_A1			:= $3C
+	MON_A1L			:= $3C
+	MON_A1H			:= $3D
+	MON_A2			:= $3E
+	MON_A2L			:= $3E
+	MON_A2H			:= $3F
+	MON_A3			:= $40
+	MON_A3L			:= $40
+	MON_A3H			:= $41
+	MON_A4			:= $42
+	MON_A4L			:= $42
+	MON_A4H			:= $43
+	MON_A5			:= $44
+	MON_A5L			:= $44
+	MON_A5H			:= $45				; MSB colide com MON_ACC
+	
+	MON_ACC			:= $45				; Colisão com MSB de MON_A5
+	MON_XREG		:= $46				
+	MON_YREG		:= $47				; Uso restrito no TK-2000! :-(
+	MON_STATUS		:= $48				; Uso restrito no TK-2000! :-(
+	MON_SPNT		:= $49
+	
+	MON_RND			:= $4E
+	MON_RNDL		:= $4E
+	MON_RNDH		:= $4F
+	
+	MON_AUX			:= $54
+	MON_AUXL		:= $54				; Uso restrito no Applesoft! (pq ninguém documentou?)
+	MON_AUXH		:= $55				; Uso restrito no TK-2000! :-(
+		
+	STACK			:= $0100
+	INPUTBUFFER		:= $0200
+	IOBUFFER		:= $0200
+	
+	SYS_BRK_JMP		:= $3EF
+	SYS_BRK_VECTOR		:= SYS_BRK_JMP + 1
+	SYS_BRK_VECTORL		:= SYS_BRK_VECTOR
+	SYS_BRK_VECTORH		:= SYS_BRK_VECTORL + 1
+	SYS_RESET_VECTOR	:= $3F2
+	SYS_RESET_VECTORL	:= SYS_RESET_VECTOR
+	SYS_RESET_VECTORH	:= SYS_RESET_VECTORL + 1
+	SYS_RESET_VECTOR_MAGIC	:= SYS_RESET_VECTORH + 1
+	
+	MON_PRBLNK		:= $F948
+	MON_PRBL2		:= MON_PRBLNK + 2
+	MON_HLINE		:= $F819
+	MON_VLINE		:= $F828
+	MON_SETCOL		:= $F864
+	MON_SCRN		:= $F871
+	MON_PREAD		:= $FB1E
+	MON_INIT		:= $FB2F
+	MON_SETTXT		:= $FB39
+	mON_SETGR		:= $FB40
+	MON_TABV		:= $FB5B
+	MON_BASCALC		:= $FBC1
+	MON_VTAB		:= $FC22
+	MON_HOME		:= $FC58
+	MON_WAIT		:= $FCA8
+	MON_RD2BIT		:= $FCFA
+	MON_RDKEY		:= $FD0C
+	MON_GETLN		:= $FD6A
+	MON_CROUT		:= $FD8E
+	MON_PRBYTE		:= $FDDA
+	MON_COUT		:= $FDED
+	MON_SETKBD		:= $FE89
+	MON_INPORT		:= $FE8B
+	MON_SETVID		:= $FE93
+	MON_OUTPORT		:= $FE95
+	MON_REGZ		:= $FEBF
+	MON_WRITE		:= $FECD
+	MON_READ2		:= $FF02
+	MON_PRERR		:= $FF2D
+	MON_BELL		:= $FF3A
+	MON_RESTORE		:= $FF3F
+	MON_SAVE		:= $FF4A
+	MON_RESET		:= $FF59
+	MON_MON			:= $FF65
+	MON_MONZ		:= $FF69
+	MON_READ		:= $FEFD
+	
+	MON_ENTER_VECTOR	:= $FFF8
+
+;	TK-2000 specific
+	TK2K_MON_MON		:= $FF5D
+	TK2K_MON_MONZ		:= $FF61
+	TK2K_MON_INIT1		:= $FB38
+	TK2K_MON_SCAN1		:= $F043		; TK2000 keyboard scan

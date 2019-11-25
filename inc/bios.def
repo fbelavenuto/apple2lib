@@ -1,0 +1,79 @@
+; Macro utilizada para setar o bit7 de uma string
+.macro	text	Arg
+	.repeat .strlen(Arg), I
+	.byte   .strat(Arg, I) | $80
+	.endrep
+.endmacro
+
+; Macro utilizada para colocar um byte nulo no fim da string
+.macro	textz	Arg
+	text Arg
+	.byte $00
+.endmacro
+
+; Macro utilizada para colocar um byte CR no fim da string
+.macro	textr	Arg
+	text Arg
+	.byte $0D
+.endmacro
+
+; Macro para armazenar um BYTE em  memória. Destrói Acc
+.macro LOADMB mem, arg
+	.if (.match (.left (1, {arg}), #))
+		lda		#<(.right (.tcount ({arg})-1, {arg}))
+		sta		mem
+	.else
+		lda		arg
+		sta		mem
+	.endif
+.endmacro
+
+; Macro para armazenar uma WORD em memória. Destrói Acc
+.macro LOADM mem, arg
+	.if (.match (.left (1, {arg}), #))
+		lda		#<(.right (.tcount ({arg})-1, {arg}))
+		sta		mem
+		lda		#>(.right (.tcount ({arg})-1, {arg}))
+		sta		mem+1
+	.else
+		lda		arg
+		sta		mem
+		lda		arg+1
+		sta		mem+1
+	.endif
+.endmacro
+
+; Macro para carregar AY com uma Word. LSB em Acc, MSB em Y
+.macro LOADAY arg
+	.if (.match (.left (1, {arg}), #))
+		lda		#<(.right (.tcount ({arg})-1, {arg}))
+		ldy		#>(.right (.tcount ({arg})-1, {arg}))
+	.else
+		lda		arg
+		ldy		arg+1
+	.endif
+.endmacro
+
+; Macro para armazenar AY em memória. LSB em Acc, MSB em Y
+.macro STOREAY arg
+	sta		arg
+	sty		arg+1
+.endmacro
+
+; Macro para carregar AX com uma Word imediato. LSB em Acc, MSB em Y
+.macro LOADAX arg
+	.if (.match (.left (1, {arg}), #))
+		lda		#<(.right (.tcount ({arg})-1, {arg}))
+		ldx		#>(.right (.tcount ({arg})-1, {arg}))
+	.else
+		lda		arg
+		ldx		arg+1
+	.endif
+.endmacro
+
+; Macro para armazenar AX em memória. LSB em Acc, MSB em Y
+.macro STOREAX arg
+	sta		arg
+	stx		arg+1
+.endmacro
+
