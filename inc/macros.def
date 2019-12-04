@@ -114,3 +114,20 @@
 	stx		arg+1
 .endmacro
 
+
+.macro MAKEHGRHITBL arg
+	addr .set arg
+	.repeat 3
+	 .repeat 4
+	  .repeat 2
+	   .repeat 8
+	    .byte addr
+	    addr .set addr + 4
+	   .endrep
+	   addr .set addr - $20
+	  .endrep
+	  addr .set addr + 1
+	 .endrep
+	 addr .set arg
+	.endrep
+.endmacro

@@ -2,6 +2,8 @@
 	MON_GOWARM		:= $0000
 	MON_GOSTROUT		:= $0003
 
+	MON_CH			:= $24
+	MON_CV			:= $25
 	MON_PC			:= $3A
 	MON_PCL			:= $3A
 	MON_PCH			:= $3B
