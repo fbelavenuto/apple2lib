@@ -94,7 +94,7 @@
 	; OUT:
 	;	Acc					: Index to the selected file from Catalog's disk
 	;	CB2K_FILE 			: Addrees to the file entry, structured as follows
-	CB2K_FILE					:= MON_A1					; pointer
+	CB2K_FILE			:= MON_A1				; pointer
 	CB2K_FILE_TSLIST_TRACK		:= 0					; byte
 	CB2K_FILE_TSLIST_SECTOR		:= 1					; byte
 	CB2K_FILE_TYPE			:= 2					; byte
