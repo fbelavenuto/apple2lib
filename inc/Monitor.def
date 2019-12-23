@@ -23,7 +23,7 @@
 	MON_A5L			:= $44
 	MON_A5H			:= $45				; MSB colide com MON_ACC
 	
-	MON_ACC			:= $45				; Colisão com MSB de MON_A5
+	MON_ACC			:= $45				; Colisï¿½o com MSB de MON_A5
 	MON_XREG		:= $46				
 	MON_YREG		:= $47				; Uso restrito no TK-2000! :-(
 	MON_STATUS		:= $48				; Uso restrito no TK-2000! :-(
@@ -34,7 +34,7 @@
 	MON_RNDH		:= $4F
 	
 	MON_AUX			:= $54
-	MON_AUXL		:= $54				; Uso restrito no Applesoft! (pq ninguém documentou?)
+	MON_AUXL		:= $54				; Uso restrito no Applesoft! (pq ninguï¿½m documentou?)
 	MON_AUXH		:= $55				; Uso restrito no TK-2000! :-(
 		
 	STACK			:= $0100
@@ -80,6 +80,7 @@
 	MON_OUTPORT		:= $FE95
 	MON_REGZ		:= $FEBF
 	MON_WRITE		:= $FECD
+	MON_READ		:= $FEFD
 	MON_READ2		:= $FF02
 	MON_PRERR		:= $FF2D
 	MON_BELL		:= $FF3A
@@ -88,7 +89,6 @@
 	MON_RESET		:= $FF59
 	MON_MON			:= $FF65
 	MON_MONZ		:= $FF69
-	MON_READ		:= $FEFD
 	
 	MON_ENTER_VECTOR	:= $FFF8
 
