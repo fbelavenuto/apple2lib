@@ -23,7 +23,7 @@
 	MON_A5L			:= $44
 	MON_A5H			:= $45				; MSB colide com MON_ACC
 	
-	MON_ACC			:= $45				; Colis�o com MSB de MON_A5
+	MON_ACC			:= $45				; Colisao com MSB de MON_A5
 	MON_XREG		:= $46				
 	MON_YREG		:= $47				; Uso restrito no TK-2000! :-(
 	MON_STATUS		:= $48				; Uso restrito no TK-2000! :-(
@@ -34,7 +34,7 @@
 	MON_RNDH		:= $4F
 	
 	MON_AUX			:= $54
-	MON_AUXL		:= $54				; Uso restrito no Applesoft! (pq ningu�m documentou?)
+	MON_AUXL		:= $54				; Uso restrito no Applesoft! (pq ninguem documentou?)
 	MON_AUXH		:= $55				; Uso restrito no TK-2000! :-(
 		
 	STACK			:= $0100
